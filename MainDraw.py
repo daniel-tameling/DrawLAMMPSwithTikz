@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # reads a LAMMPS dump file and writes a tex file containing a tikz picture of the first snapshot in the dump
 
 import sys
@@ -30,7 +30,7 @@ class InvalidWidth(Exception):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        raise NumberOfArgumentsError, "\n ERROR: Wrong number of arguments.\n Usage: ./MainDraw.py lammps_file outputfile.tex arguments\n arguments are optional and can be:\n projection=[cabinet|isometric|dimetric]\n orientation=[xyz|zxy|yzx]\n png_export\n width=10\n height=10\n width and heigt have a default value of 10. the program keeps the aspect ratio, i.e. not both values are enforced but the more rigorous constraint determines the geometry of the output." 
+        raise NumberOfArgumentsError("\n ERROR: Wrong number of arguments.\n Usage: ./MainDraw.py lammps_file outputfile.tex arguments\n arguments are optional and can be:\n projection=[cabinet|isometric|dimetric]\n orientation=[xyz|zxy|yzx]\n png_export\n width=10\n height=10\n width and heigt have a default value of 10. the program keeps the aspect ratio, i.e. not both values are enforced but the more rigorous constraint determines the geometry of the output.")
     lammpsfile = open(sys.argv[1], 'r')
     outfile = open(sys.argv[2], 'w')
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
             elif arg[1] == "dimetric":
                 projection = arg[1]
             else:
-                raise UnknownProjection, "\n ERROR: " + arg[1] + " is not an valid projection. Only use 'cabinet', 'isometric', or 'dimetric'"
+                raise UnknownProjection("\n ERROR: " + arg[1] + " is not an valid projection. Only use 'cabinet', 'isometric', or 'dimetric'")
         elif arg[0] == "orientation":
             if arg[1] == "xyz":
                 orientation = arg[1]
@@ -63,40 +63,40 @@ if __name__ == '__main__':
             elif arg[1] == "yzx":
                 orientation = arg[1]
             else:
-                raise UnknownOrientation, "\n ERROR: " + arg[1] + " is not an valid orientation. Only use 'xyz', 'zxy', or 'yzx'"
+                raise UnknownOrientation("\n ERROR: " + arg[1] + " is not an valid orientation. Only use 'xyz', 'zxy', or 'yzx'")
         elif arg[0] == "png_export":
             pngexport = True
         elif arg[0] == "height":
             try:
                 target_height = float(arg[1])
             except:
-                raise InvalidHeight, "\n ERROR: " + arg[1] + " is not an valid heigth."
+                raise InvalidHeight("\n ERROR: " + arg[1] + " is not an valid heigth.")
             if target_height <= 0:
-                raise InvalidHeight, "\n ERROR: " + arg[1] + " is not an valid heigth."
+                raise InvalidHeight( "\n ERROR: " + arg[1] + " is not an valid heigth.")
         elif arg[0] == "width":
             try:
                 target_width = float(arg[1])
             except:
-                raise InvalidWidth, "\n ERROR: " + arg[1] + " is not an valid width."
+                raise InvalidWidth("\n ERROR: " + arg[1] + " is not an valid width.")
             if target_width <= 0:
-                raise InvalidWidth, "\n ERROR: " + arg[1] + " is not an valid width."
+                raise InvalidWidth("\n ERROR: " + arg[1] + " is not an valid width.")
         else:
-            raise UnknownArgument, "\n ERROR: " + arg[0] + " is not an valid argument."
+            raise UnknownArgument("\n ERROR: " + arg[0] + " is not an valid argument.")
 
-    print "Reading LAMMPS dump file ..."
+    print("Reading LAMMPS dump file ...")
     # read time step; not used anywhere
     lammpsfile.readline()
     lammpsfile.readline()
     # read number of particles to draw
     tmp = lammpsfile.readline()
     if tmp != 'ITEM: NUMBER OF ATOMS\n':
-        raise LammpsFileCorrupt, "\n   ERROR: Number of atoms not in fourth line of LAMMPS dump file"
+        raise LammpsFileCorrupt("\n   ERROR: Number of atoms not in fourth line of LAMMPS dump file")
     number_atoms = int(lammpsfile.readline())
-    print "Reading", number_atoms,"atoms"
+    print("Reading " +  str(number_atoms) + " atoms")
     # read simulation box
     tmp = lammpsfile.readline()
     if tmp.startswith("ITEM: BOX BOUNDS") != True:
-        raise LammpsFileCorrupt, "\n   ERROR: Cannot handle simulation domain LAMMPS file"
+        raise LammpsFileCorrupt("\n   ERROR: Cannot handle simulation domain LAMMPS file")
     tmp = lammpsfile.readline().split()
     xmin = float(tmp[0]) 
     xmax = float(tmp[1])
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     # read header of position section find where are the positions
     header = lammpsfile.readline()
     if header.startswith("ITEM: ATOMS") != True:
-        raise LammpsFileCorrupt, "\n   ERROR: Header of list of atoms not in expected position"
+        raise LammpsFileCorrupt("\n   ERROR: Header of list of atoms not in expected position")
     split_header = header.split()
     x_coord_mode = -1
     y_coord_mode = -1
@@ -145,16 +145,16 @@ if __name__ == '__main__':
     except:
         pass
     if x_coord_mode == -1:
-        raise LammpsFileCorrupt, "\n   ERROR: Could not find x position in file"
+        raise LammpsFileCorrupt("\n   ERROR: Could not find x position in file")
     if y_coord_mode == -1:
-        raise LammpsFileCorrupt, "\n   ERROR: Could not find y position in file"
+        raise LammpsFileCorrupt("\n   ERROR: Could not find y position in file")
     if z_coord_mode == -1:
-        raise LammpsFileCorrupt, "\n   ERROR: Could not find z position in file"
+        raise LammpsFileCorrupt("\n   ERROR: Could not find z position in file")
 
     try:
         type_index = split_header.index('type') - 2
     except:
-        raise LammpsFileCorrupt, "\n   ERROR: Could not find type of atom in file"
+        raise LammpsFileCorrupt("\n   ERROR: Could not find type of atom in file")
     
     # read atom positions and type
     list_of_atoms = [];
@@ -247,26 +247,26 @@ if __name__ == '__main__':
         elif orientation == "yzx":
             list_of_atoms.sort(key=lambda x: -x[2]+.182*x[3]) # maybe not completely correct
 
-    types = zip(*list_of_atoms)[0] # extract all types from list of atoms
+    types = next(zip(*list_of_atoms)) # extract all types from list of atoms
     num_of_types = len(set(types)) # set determines the unique elements of types and len is then number of different types
     # output atoms
     outfile.write('\documentclass[a4paper]{article}\n')
     outfile.write('\n')
-    outfile.write('\usepackage{amsmath}\n')
-    outfile.write('\usepackage{natbib}\n')
-    outfile.write('\usepackage[T1]{fontenc}\n')
-    outfile.write('\usepackage[latin1]{inputenc}\n')
-    outfile.write('\usepackage{color,graphicx}\n')
-    outfile.write('\usepackage{array}\n')
-    outfile.write('\usepackage{tabularx}\n')
-    outfile.write('\usepackage{pgfplots}\n')
+    outfile.write('\\usepackage{amsmath}\n')
+    outfile.write('\\usepackage{natbib}\n')
+    outfile.write('\\usepackage[T1]{fontenc}\n')
+    outfile.write('\\usepackage[latin1]{inputenc}\n')
+    outfile.write('\\usepackage{color,graphicx}\n')
+    outfile.write('\\usepackage{array}\n')
+    outfile.write('\\usepackage{tabularx}\n')
+    outfile.write('\\usepackage{pgfplots}\n')
     outfile.write('\pgfplotsset{compat=newest}\n')
-    outfile.write('\usepackage{tikz}\n')
-    outfile.write('\usepgfplotslibrary{external}\n')
+    outfile.write('\\usepackage{tikz}\n')
+    outfile.write('\\usepgfplotslibrary{external}\n')
     outfile.write('%\\tikzset{external/force remake}\n')
-    outfile.write('\usetikzlibrary{shapes,arrows,shadows,backgrounds,patterns,chains,fadings}\n')
+    outfile.write('\\usetikzlibrary{shapes,arrows,shadows,backgrounds,patterns,chains,fadings}\n')
     outfile.write('\n')
-    outfile.write('\usepackage{hyperref}\n')
+    outfile.write('\\usepackage{hyperref}\n')
     outfile.write('\n')
     # TODO: different colors
     for i in range(num_of_types):
